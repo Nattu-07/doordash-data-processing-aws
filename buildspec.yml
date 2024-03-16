@@ -1,0 +1,22 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.12git 
+    commands:
+      - echo "Installing dependencies..."
+      - pip install -r requirements.txt -t lib
+  build:
+    commands:
+      - echo "Zipping deployment package..."
+      - cd lib
+      - zip -r9 ../doordash_deployment_package.zip .
+      - cd ..
+      - zip -g doordash_deployment_package.zip lambda_function.py
+  post_build:
+    commands:
+      - echo "Uploading to S3..."
+      - aws s3 cp doordash_deployment_package.zip s3://aws-de-bootcamp-na/code_pipeline/
+      - echo "Updating Lambda function via S3..."
+      - aws lambda update-function-code --function-name doordash-lambda-na --s3-bucket aws-de-bootcamp-na --s3-key code_pipeline/doordash_deployment_package.zip
+      - echo "Deployment complete!"
